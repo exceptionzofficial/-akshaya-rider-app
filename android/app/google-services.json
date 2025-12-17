@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "96208714252",
+    "project_id": "akshaya-e96c2",
+    "storage_bucket": "akshaya-e96c2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:96208714252:android:fe77458d585961e7b20c29",
+        "android_client_info": {
+          "package_name": "com.riderapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMzMGcanAOUPUMU5K8TdePG-VE1KJYUS4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
