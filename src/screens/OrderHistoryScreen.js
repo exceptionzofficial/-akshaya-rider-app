@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useContext, useCallback } from 'react';
 import {
     View,
     Text,
@@ -8,79 +8,74 @@ import {
     RefreshControl,
     ActivityIndicator,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { AuthContext } from '../context/AuthContext';
+import { riderAPI } from '../services/api';
 
 const OrderHistoryScreen = () => {
+    const { user } = useContext(AuthContext);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [historyOrders, setHistoryOrders] = useState([]);
 
-    useEffect(() => {
-        fetchOrderHistory();
-    }, []);
+    const fetchOrderHistory = async (isRefreshing = false) => {
+        if (!user?.riderId) return;
 
-    const fetchOrderHistory = async () => {
         try {
-            setLoading(true);
-            // API call placeholder - simulate data
-            setHistoryOrders([
-                {
-                    id: 'ORD089',
-                    date: '2024-12-01',
-                    customerName: 'Anita Desai',
-                    items: 2,
-                    amount: 195,
-                    earnings: 25,
-                    deliveryTime: '18 mins',
-                },
-                {
-                    id: 'ORD088',
-                    date: '2024-12-01',
-                    customerName: 'Vijay Kumar',
-                    items: 4,
-                    amount: 320,
-                    earnings: 35,
-                    deliveryTime: '22 mins',
-                },
-                {
-                    id: 'ORD087',
-                    date: '2024-11-30',
-                    customerName: 'Sunita Patel',
-                    items: 1,
-                    amount: 85,
-                    earnings: 15,
-                    deliveryTime: '12 mins',
-                },
-                {
-                    id: 'ORD086',
-                    date: '2024-11-30',
-                    customerName: 'Rajesh Mehta',
-                    items: 3,
-                    amount: 275,
-                    earnings: 30,
-                    deliveryTime: '25 mins',
-                },
-            ]);
+            if (!isRefreshing) setLoading(true);
+
+            // Fetch delivered orders from API
+            const response = await riderAPI.getOrderHistory(user.riderId);
+
+            if (response.success) {
+                // Transform orders for display
+                const orders = (response.data?.orders || []).map(order => ({
+                    id: order.id,
+                    date: order.deliveredAt || order.updatedAt || order.createdAt,
+                    customerName: order.customer?.name || 'Customer',
+                    address: order.customer?.address || order.deliveryAddress || '',
+                    items: order.items?.length || order.itemCount || 0,
+                    amount: order.totalAmount || order.amount || 0,
+                    earnings: order.riderEarnings || Math.round((order.totalAmount || 0) * 0.1) || 20, // 10% or default
+                    deliveryTime: order.deliveryTime || '-',
+                    status: order.status,
+                }));
+
+                // Sort by date (newest first)
+                orders.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                setHistoryOrders(orders);
+            }
         } catch (error) {
             console.error('Error fetching history:', error);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
+    // Fetch on focus
+    useFocusEffect(
+        useCallback(() => {
+            fetchOrderHistory();
+        }, [user?.riderId])
+    );
+
     const onRefresh = async () => {
         setRefreshing(true);
-        await fetchOrderHistory();
-        setRefreshing(false);
+        await fetchOrderHistory(true);
     };
 
     const groupOrdersByDate = () => {
         const grouped = {};
         historyOrders.forEach(order => {
-            if (!grouped[order.date]) {
-                grouped[order.date] = [];
+            // Convert ISO date to YYYY-MM-DD for grouping
+            const dateKey = order.date ? new Date(order.date).toISOString().split('T')[0] : 'Unknown';
+            if (!grouped[dateKey]) {
+                grouped[dateKey] = [];
             }
-            grouped[order.date].push(order);
+            grouped[dateKey].push(order);
         });
         return grouped;
     };

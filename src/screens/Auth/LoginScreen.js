@@ -88,11 +88,19 @@ const LoginScreen = ({ navigation }) => {
                         )}
                     </TouchableOpacity>
 
+                    {/* Registration disabled - riders are added by admin 
                     <View style={styles.registerContainer}>
                         <Text style={styles.registerText}>Don't have an account? </Text>
                         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                             <Text style={styles.registerLink}>Register</Text>
                         </TouchableOpacity>
+                    </View>
+                    */}
+
+                    <View style={styles.infoContainer}>
+                        <Text style={styles.infoText}>
+                            Contact admin to get your login credentials
+                        </Text>
                     </View>
                 </View>
             </ScrollView>
@@ -186,6 +194,18 @@ const styles = StyleSheet.create({
         color: '#2D7A4F',
         fontSize: 15,
         fontWeight: 'bold',
+    },
+    infoContainer: {
+        alignItems: 'center',
+        marginTop: 10,
+        padding: 16,
+        backgroundColor: '#F8F9FA',
+        borderRadius: 10,
+    },
+    infoText: {
+        color: '#7F8C8D',
+        fontSize: 14,
+        textAlign: 'center',
     },
 });
 

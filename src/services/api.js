@@ -1,7 +1,7 @@
 const API_CONFIG = {
     // DEVELOPMENT_URL: 'http://10.0.2.2:3000/api', // Android Emulator localhost
-    // BASE_URL: 'https://testing-backend-akshaya.vercel.app/api', // NGTOK URL
-    BASE_URL: 'https://5ffe2cbc07d8.ngrok-free.app/api',
+    BASE_URL: 'https://testing-backend-akshaya.vercel.app/api', // NGTOK URL
+    // BASE_URL: 'https://5ffe2cbc07d8.ngrok-free.app/api',
     TIMEOUT: 60000,
 };
 

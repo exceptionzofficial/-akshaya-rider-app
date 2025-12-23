@@ -32,7 +32,14 @@ const ActiveOrdersScreen = () => {
                 ready?.data?.orders || []
             );
 
-            setActiveOrders(assigned);
+            // Filter out delivered and cancelled orders - only show active ones
+            const activeOnly = assigned.filter(order =>
+                order.status !== 'delivered' &&
+                order.status !== 'cancelled' &&
+                order.status !== 'completed'
+            );
+
+            setActiveOrders(activeOnly);
         } catch (error) {
             console.error('Error fetching orders:', error);
         } finally {
