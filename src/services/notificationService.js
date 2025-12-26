@@ -112,7 +112,15 @@ class NotificationService {
     }
 
     async listen() {
+        // Prevent duplicate listener registration
+        if (this.isListening) {
+            console.log('Notification listeners already registered, skipping...');
+            return;
+        }
+
         try {
+            this.isListening = true;
+
             // Foreground state messages
             this.messageListener = onMessage(this.messaging, async remoteMessage => {
                 console.log('Foreground notification received:', JSON.stringify(remoteMessage));
@@ -126,11 +134,14 @@ class NotificationService {
                 }
             });
 
-            // Background & Quit state messages
-            setBackgroundMessageHandler(this.messaging, async remoteMessage => {
-                console.log('Background notification received:', remoteMessage);
-                // Firebase automatically handles background notifications
-            });
+            // Background & Quit state messages - ONLY set once
+            if (!this.backgroundHandlerSet) {
+                this.backgroundHandlerSet = true;
+                setBackgroundMessageHandler(this.messaging, async remoteMessage => {
+                    console.log('Background notification received:', remoteMessage);
+                    // Firebase automatically handles background notifications
+                });
+            }
 
             // Handle notification open from background
             this.onOpenedListener = onNotificationOpenedApp(this.messaging, remoteMessage => {
@@ -156,28 +167,40 @@ class NotificationService {
             });
 
             // Notifee foreground event listener (safe initialization)
-            try {
-                notifee.onForegroundEvent(({ type, detail }) => {
-                    console.log('Notifee foreground event:', type, detail);
-                });
-            } catch (notifeeError) {
-                console.warn('Notifee event listener setup failed (non-critical):', notifeeError);
+            if (!this.notifeeForegroundSet) {
+                this.notifeeForegroundSet = true;
+                try {
+                    notifee.onForegroundEvent(({ type, detail }) => {
+                        console.log('Notifee foreground event:', type, detail);
+                    });
+                } catch (notifeeError) {
+                    console.warn('Notifee event listener setup failed (non-critical):', notifeeError);
+                }
             }
+
+            console.log('✅ Notification listeners registered successfully');
         } catch (error) {
             console.error('Error setting up notification listeners:', error);
+            this.isListening = false;
         }
     }
 
     unListen() {
         if (this.messageListener) {
             this.messageListener();
+            this.messageListener = null;
         }
         if (this.onOpenedListener) {
             this.onOpenedListener();
+            this.onOpenedListener = null;
         }
         if (this.tokenRefreshListener) {
             this.tokenRefreshListener();
+            this.tokenRefreshListener = null;
         }
+        // Reset flag so listen() can be called again if needed
+        this.isListening = false;
+        console.log('Notification listeners unregistered');
     }
 }
 
